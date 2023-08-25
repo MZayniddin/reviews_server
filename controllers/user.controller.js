@@ -36,10 +36,36 @@ exports.handleSignUp = async (req, res) => {
 
     res.json({ user: newUser, token });
   } catch (error) {
-    res.json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
 exports.handleSignIn = async (req, res) => {
-  res.send("OK");
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res
+      .status(400)
+      .json({ message: "Email and password are required!" });
+
+  try {
+    // CHECK THE USER EXISTS
+    const foundUser = await User.findOne({ email }).exec();
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ message: "User not found with this email" });
+
+    // CHECK THE PASSWORD
+    const matchPwd = await bcrypt.compare(password, foundUser.password);
+
+    if (!matchPwd) return res.status(400).json({ message: "Invalid password" });
+
+    // TOKEN GENERATING
+    const token = tokenGenerator(foundUser);
+
+    res.json({ user: foundUser, token });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
