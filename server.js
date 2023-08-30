@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const verifyJWT = require("./middlewares/verifyJWT");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const connectDB = require("./config/db.config");
@@ -17,6 +18,7 @@ app.use(express.json());
 
 // ROUTES
 app.use("/user", require("./routes/user"));
+app.use(verifyJWT);
 app.use("/category", require("./routes/category"));
 app.use("/review", require("./routes/review"));
 
