@@ -7,14 +7,16 @@ const ReviewSchema = mongoose.Schema({
   tags: [String],
   description: { type: String, required: true },
   image: String,
+  creator: { type: String, required: true },
   grade: { type: Number, required: true },
   likes: { type: [String], default: [] },
   comments: [
-    {
+    {   
       type: {
         rate: Number,
         user: { type: mongoose.Types.ObjectId, ref: "User" },
         date: { type: Date, default: new Date() },
+        text: String,
       },
       default: [],
     },
