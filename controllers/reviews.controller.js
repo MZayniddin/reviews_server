@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Review = require("../models/Review");
 
 exports.getReviews = async (req, res) => {
-  res.json(await Review.find().sort({ _id: -1 }));
+  res.json(await Review.find().populate("creator").sort({ _id: -1 }));
 };
 
 exports.createReview = async (req, res) => {
@@ -72,6 +72,10 @@ exports.commentReview = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+exports.getUserReview = async (req, res) => {
+  console.log(req.user);
 };
 
 exports.likeReview = async (req, res) => {

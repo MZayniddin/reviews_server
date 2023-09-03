@@ -7,11 +7,11 @@ const ReviewSchema = mongoose.Schema({
   tags: [String],
   description: { type: String, required: true },
   image: String,
-  creator: { type: String, required: true },
+  creator: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
   grade: { type: Number, required: true },
   likes: { type: [String], default: [] },
   comments: [
-    {   
+    {
       type: {
         rate: Number,
         user: { type: mongoose.Types.ObjectId, ref: "User" },
