@@ -1,63 +1,52 @@
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
-async function verifyGoogleToken(token, req) {
-  try {
-    const { data } = await axios.get(
-      `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${token}`
-    );
-    return data;
-  } catch (error) {
-    console.error("Google token verification failed:", error.message);
-  }
-}
+const verifyGoogleToken = (token) =>
+  axios.get(
+    `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${token}`
+  );
 
-async function verifyFacebookToken(token, req) {
-  try {
-    const { data } = await axios.get(
-      `https://graph.facebook.com/v12.0/me?access_token=${token}`
-    );
-    return data;
-  } catch (error) {
-    console.error("Facebook token verification failed:", error.message);
-  }
-}
-
-function verifyJWTToken(token, req) {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded;
-  } catch (error) {
-    console.error("JWT token verification failed:", error.message);
-  }
-}
+const verifyFacebookToken = (token) =>
+  axios.get(
+    `https://graph.facebook.com/v12.0/me?fields=email&access_token=${token}`
+  );
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (!authHeader?.startsWith("Bearer ")) return res.sendStatus(401);
   const token = authHeader.split(" ")[1];
 
-  let userId;
-
   if (token.startsWith("ya29.")) {
     // Google Access Token
-    const data = await verifyGoogleToken(token);
-    req.user = data.id;
-    next();
+    try {
+      const { data } = await verifyGoogleToken(token);
+      req.user = data.email;
+      next();   
+    } catch (error) {
+      res.status(403).json({ message: error.message });
+    }
   } else if (token.startsWith("ey") && token.split(".").length === 3) {
     // JWT Token
-    const { UserInfo } = verifyJWTToken(token);
-    req.user = UserInfo.id;
-    req.roles = UserInfo.roles;
-    next();
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded.UserInfo.email;
+      req.roles = decoded.UserInfo.roles;
+      next();
+    } catch (error) {
+      res.status(403).json({ message: error.message });
+    }
   } else if (token.startsWith("EAA")) {
     // Facebook Token
-    const data = await verifyFacebookToken(token);
-    req.user = data.id;
-    next();
+    try {
+      const { data } = await verifyFacebookToken(token);
+      req.user = data.email;
+      next();
+    } catch (error) {
+      res.status(403).json({ message: error.message });
+    }
   } else {
     console.error("Unknown token type");
-    return req.status(400).json({ message: "Unknown token type" });
+    return req.status(403).json({ message: "Unknown token type" });
   }
 };
 

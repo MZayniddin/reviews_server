@@ -2,7 +2,24 @@ const mongoose = require("mongoose");
 const Review = require("../models/Review");
 
 exports.getReviews = async (req, res) => {
-  res.json(await Review.find().populate("creator").sort({ _id: -1 }));
+  const result = await Review.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "creator",
+        foreignField: "email",
+        as: "creator",
+      },
+    },
+    {
+      $unwind: {
+        path: "$creator", // given name
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+  ]).sort({ _id: -1 });
+
+  res.json(result);
 };
 
 exports.createReview = async (req, res) => {
@@ -75,7 +92,11 @@ exports.commentReview = async (req, res) => {
 };
 
 exports.getUserReview = async (req, res) => {
-  console.log(req.user);
+  try {
+    res.json(await Review.find({ creator: req.user }));
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 exports.likeReview = async (req, res) => {
