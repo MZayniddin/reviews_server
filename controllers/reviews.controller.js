@@ -93,7 +93,17 @@ exports.commentReview = async (req, res) => {
 
 exports.getUserReview = async (req, res) => {
   try {
-    res.json(await Review.find({ creator: req.user }));
+    const { category, sort } = req.query;
+
+    let result = await Review.find({ creator: req.user })
+      .populate("category")
+      .sort({ _id: +sort });
+    console.log(result);
+    if (category) {
+      result = result.filter((review) => review.category.name === category);
+    }
+
+    res.json(result);
   } catch (error) {
     console.log(error);
   }
