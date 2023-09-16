@@ -22,6 +22,38 @@ exports.getReviews = async (req, res) => {
   res.json(result);
 };
 
+exports.getOneReview = async (req, res) => {
+  const { reviewId } = req.params;
+
+
+  try {
+    const review = await Review.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "creator",
+          foreignField: "email",
+          as: "creator",
+        },
+      },
+      {
+        $unwind: {
+          path: "$creator", // given name
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: { _id: new mongoose.Types.ObjectId(reviewId) },
+      },
+    ]);
+
+    res.json(review[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: error.message });
+  }
+};
+
 exports.createReview = async (req, res) => {
   const review = req.body;
 
@@ -98,7 +130,7 @@ exports.getUserReview = async (req, res) => {
     let result = await Review.find({ creator: req.user })
       .populate("category")
       .sort({ _id: +sort });
-    console.log(result);
+
     if (category) {
       result = result.filter((review) => review.category.name === category);
     }
