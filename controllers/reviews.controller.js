@@ -25,7 +25,6 @@ exports.getReviews = async (req, res) => {
 exports.getOneReview = async (req, res) => {
   const { reviewId } = req.params;
 
-
   try {
     const review = await Review.aggregate([
       {
@@ -163,5 +162,25 @@ exports.likeReview = async (req, res) => {
     new: true,
   });
 
-  res.json(updatedReview);
+  const result = await Review.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "creator",
+        foreignField: "email",
+        as: "creator",
+      },
+    },
+    {
+      $unwind: {
+        path: "$creator", // given name
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: { _id: updatedReview._id },
+    },
+  ]);
+
+  res.json(result[0]);
 };
