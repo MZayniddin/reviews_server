@@ -19,6 +19,7 @@ app.use(express.json());
 app.use("/user", require("./routes/user"));
 app.use("/category", require("./routes/category"));
 app.use("/review", require("./routes/review"));
+app.use("/upload", require("./routes/upload"));
 
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
