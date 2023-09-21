@@ -14,7 +14,7 @@ const ReviewSchema = mongoose.Schema({
     {
       type: {
         rate: Number,
-        user: { type: mongoose.Types.ObjectId, ref: "User" },
+        user: { type: String },
         date: { type: Date, default: new Date() },
         text: String,
       },

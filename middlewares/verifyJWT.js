@@ -21,7 +21,7 @@ const verifyToken = async (req, res, next) => {
     try {
       const { data } = await verifyGoogleToken(token);
       req.user = data.email;
-      next();   
+      next();
     } catch (error) {
       res.status(403).json({ message: error.message });
     }

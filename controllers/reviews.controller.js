@@ -112,7 +112,16 @@ exports.commentReview = async (req, res) => {
     date: new Date().toISOString(),
     user: req.user,
   };
-  review.comments.push(newComment);
+
+  const index = review.comments.findIndex(
+    (comment) => comment.user === String(req.user)
+  );
+
+  if (index === -1) {
+    review.comments.push(newComment);
+  } else {
+    review.comments[index] = newComment;
+  }
 
   try {
     await review.save();
