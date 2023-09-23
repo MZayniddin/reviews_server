@@ -135,13 +135,17 @@ exports.getUserReview = async (req, res) => {
   try {
     const { category, sort } = req.query;
 
-    let result = await Review.find({ creator: req.user })
-      .populate("category")
-      .sort({ _id: +sort });
-
-    if (category) {
-      result = result.filter((review) => review.category.name === category);
-    }
+    const result = await Review.aggregate([
+      {
+        $match: {
+          creator: req.user,
+          category: new mongoose.Types.ObjectId(category),
+        },
+      },
+      {
+        $sort: { _id: +sort },
+      },
+    ]);
 
     res.json(result);
   } catch (error) {
