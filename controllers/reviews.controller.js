@@ -75,10 +75,13 @@ exports.updateReview = async (req, res) => {
 
   if (!mongoose.Types.ObjectId.isValid(_id))
     return res.status(404).send("No post with that id");
-
-  const updatedReview = await Review.findByIdAndUpdate(_id, req.body, {
-    new: true,
-  });
+  const updatedReview = await Review.findByIdAndUpdate(
+    _id,
+    { ...req.body, creator: req.user },
+    {
+      new: true,
+    }
+  );
 
   res.json(updatedReview);
 };
@@ -138,10 +141,7 @@ exports.getUserReview = async (req, res) => {
     let result = await Review.find({ creator: req.user }).sort({ _id: +sort });
 
     if (category) {
-      result = result.filter((review) => {
-        console.log(review.category, new mongoose.Types.ObjectId(category));
-        return review.category.equals(category);
-      });
+      result = result.filter((review) => review.category.equals(category));
     }
 
     res.json(result);
