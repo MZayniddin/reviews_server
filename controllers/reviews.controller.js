@@ -194,3 +194,48 @@ exports.likeReview = async (req, res) => {
 
   res.json(result[0]);
 };
+
+exports.getReviewsBySearch = async (req, res) => {
+  const { searchQuery } = req.query;
+
+  const result = await Review.aggregate([
+    [
+      {
+        $search: {
+          index: "searchReview",
+          text: {
+            query: searchQuery,
+            path: {
+              wildcard: "*",
+            },
+            fuzzy: {},
+          },
+          highlight: {
+            path: "description",
+          },
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          name: 1,
+          tags: 1,
+          description: 1,
+          image: 1,
+          _id: 1,
+          score: {
+            $meta: "searchScore",
+          },
+          hightlight: {
+            $meta: "searchHighlights",
+          },
+        },
+      },
+      {
+        $limit: 10,
+      },
+    ],
+  ]);
+
+  res.json(result);
+};
