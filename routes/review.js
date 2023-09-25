@@ -11,10 +11,12 @@ const {
   getOneReview,
   deleteReview,
   getReviewsBySearch,
+  getHighGradedReviews
 } = require("../controllers/reviews.controller");
 
 router.get("/list", getReviews);
 router.get("/search", getReviewsBySearch);
+router.get("/top", getHighGradedReviews);
 router.get("/profile", verifyJWT, getUserReview);
 router.get("/:reviewId", getOneReview);
 router.post("/add", verifyJWT, createReview);

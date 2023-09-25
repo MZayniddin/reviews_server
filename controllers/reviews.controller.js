@@ -211,7 +211,7 @@ exports.getReviewsBySearch = async (req, res) => {
             fuzzy: {},
           },
           highlight: {
-            path: "description",
+            path: ["description", "comments.text"],
           },
         },
       },
@@ -236,6 +236,30 @@ exports.getReviewsBySearch = async (req, res) => {
       },
     ],
   ]);
+
+  res.json(result);
+};
+
+exports.getHighGradedReviews = async (req, res) => {
+  const result = await Review.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "creator",
+        foreignField: "email",
+        as: "creator",
+      },
+    },
+    {
+      $unwind: {
+        path: "$creator", // given name
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: { grade: { $gte: 9 } },
+    },
+  ]).limit(10);
 
   res.json(result);
 };
